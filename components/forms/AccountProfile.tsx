@@ -16,6 +16,8 @@ import { Textarea } from '../ui/textarea'
 import * as z from 'zod'
 import Image from 'next/image'
 import { ChangeEvent, useState } from 'react'
+import { isBase64Image } from '@/lib/utils'
+import { useUploadThing } from '@/lib/uploadthing'
 
 interface Props {
   user: {
@@ -31,6 +33,7 @@ interface Props {
 
 function AccountProfile({ user, btnTitle }: Props) {
   const [files, setFiles] = useState<File[]>([])
+  const { startUpload } = useUploadThing('media')
 
   const form = useForm({
     resolver: zodResolver(userValidation),
@@ -56,7 +59,7 @@ function AccountProfile({ user, btnTitle }: Props) {
       setFiles(Array.from(e.target.files))
 
       if (!file.type.includes('image')) return
-      
+
       fileReader.onload = async (event) => {
         const imageDataUrl = event.target?.result?.toString() || ''
 
@@ -67,8 +70,18 @@ function AccountProfile({ user, btnTitle }: Props) {
     }
   }
 
-  function onSubmit(values: z.infer<typeof userValidation>) {
-    console.log(values)
+  const onSubmit = async (values: z.infer<typeof userValidation>) => {
+    const blob = values.profile_photo
+
+    const hasImageChange = isBase64Image(blob)
+
+    if (hasImageChange) {
+      const imgRes = await startUpload(files)
+
+      if (imgRes && imgRes[0].url) {
+        values.profile_photo = imgRes[0].url
+      }
+    }
   }
 
   return (
@@ -171,7 +184,9 @@ function AccountProfile({ user, btnTitle }: Props) {
             </FormItem>
           )}
         />
-        <Button type='submit' className='bg-primary-500'>Submit</Button>
+        <Button type='submit' className='bg-primary-500'>
+          Submit
+        </Button>
       </form>
     </Form>
   )
