@@ -2,13 +2,14 @@
 
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { userValidation } from '@/lib/validations/user'
+import { UserValidation } from '@/lib/validations/user'
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
@@ -20,16 +21,10 @@ import { isBase64Image } from '@/lib/utils'
 import { useUploadThing } from '@/lib/uploadthing'
 import { updateUser } from '@/lib/actions/user.actions'
 import { usePathname, useRouter } from 'next/navigation'
+import { User } from '@/interfaces'
 
 interface Props {
-  user: {
-    id: string | undefined
-    objectId: string
-    username: string
-    name: string
-    bio: string
-    image: string
-  }
+  user: User
   btnTitle: string
 }
 
@@ -40,7 +35,7 @@ function AccountProfile({ user, btnTitle }: Props) {
   const pathname = usePathname()
 
   const form = useForm({
-    resolver: zodResolver(userValidation),
+    resolver: zodResolver(UserValidation),
     defaultValues: {
       profile_photo: user?.image || '',
       name: user?.name || '',
@@ -74,7 +69,7 @@ function AccountProfile({ user, btnTitle }: Props) {
     }
   }
 
-  const onSubmit = async (values: z.infer<typeof userValidation>) => {
+  const onSubmit = async (values: z.infer<typeof UserValidation>) => {
     const blob = values.profile_photo
 
     const hasImageChange = isBase64Image(blob)
@@ -144,6 +139,7 @@ function AccountProfile({ user, btnTitle }: Props) {
                   onChange={(e) => handleImage(e, field.onChange)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -163,6 +159,7 @@ function AccountProfile({ user, btnTitle }: Props) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -182,6 +179,7 @@ function AccountProfile({ user, btnTitle }: Props) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -201,11 +199,12 @@ function AccountProfile({ user, btnTitle }: Props) {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
         <Button type='submit' className='bg-primary-500'>
-          Submit
+          {btnTitle}
         </Button>
       </form>
     </Form>
