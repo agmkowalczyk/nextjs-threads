@@ -56,7 +56,7 @@ async function Page({ params }: { params: { id: string } }) {
               className='w-full text-light-1'
             >
               <ThreadsTab
-                currentUserID={user.id}
+                currentUserId={user.id}
                 accountId={userInfo.id}
                 accountType='User'
               ></ThreadsTab>
