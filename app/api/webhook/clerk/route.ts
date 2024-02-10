@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server'
 import {
   addMemberToCommunity,
   createCommunity,
+  removeUserFromCommunity,
 } from '@/lib/actions/community.actions'
 
 // Resource: https://clerk.com/docs/integration/webhooks#supported-events
@@ -122,6 +123,28 @@ export const POST = async (request: Request) => {
         { message: 'Invitation accepted' },
         { status: 201 }
       )
+    } catch (err) {
+      console.log(err)
+
+      return NextResponse.json(
+        { message: 'Internal Server Error' },
+        { status: 500 }
+      )
+    }
+  }
+
+  // Listen member deletion event
+  if (eventType === 'organizationMembership.deleted') {
+    try {
+      // Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/DeleteOrganizationMembership
+      // Show what evnt?.data sends from above resource
+      const { organization, public_user_data } = evnt?.data
+      console.log('removed', evnt?.data)
+
+      // @ts-ignore
+      await removeUserFromCommunity(public_user_data.user_id, organization.id)
+
+      return NextResponse.json({ message: 'Member removed' }, { status: 201 })
     } catch (err) {
       console.log(err)
 
