@@ -13,6 +13,7 @@ import {
   addMemberToCommunity,
   createCommunity,
   removeUserFromCommunity,
+  updateCommunityInfo,
 } from '@/lib/actions/community.actions'
 
 // Resource: https://clerk.com/docs/integration/webhooks#supported-events
@@ -143,6 +144,28 @@ export const POST = async (request: Request) => {
 
       // @ts-ignore
       await removeUserFromCommunity(public_user_data.user_id, organization.id)
+
+      return NextResponse.json({ message: 'Member removed' }, { status: 201 })
+    } catch (err) {
+      console.log(err)
+
+      return NextResponse.json(
+        { message: 'Internal Server Error' },
+        { status: 500 }
+      )
+    }
+  }
+
+  // Listen organization updation event
+  if (eventType === 'organization.updated') {
+    try {
+      // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/UpdateOrganization
+      // Show what evnt?.data sends from above resource
+      const { id, logo_url, name, slug } = evnt?.data
+      console.log('updated', evnt?.data)
+
+      // @ts-ignore
+      await updateCommunityInfo(id, name, slug, logo_url)
 
       return NextResponse.json({ message: 'Member removed' }, { status: 201 })
     } catch (err) {
