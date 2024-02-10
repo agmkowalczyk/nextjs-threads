@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server'
 import {
   addMemberToCommunity,
   createCommunity,
+  deleteCommunity,
   removeUserFromCommunity,
   updateCommunityInfo,
 } from '@/lib/actions/community.actions'
@@ -178,5 +179,28 @@ export const POST = async (request: Request) => {
     }
   }
 
-  
+  // Listen organization deletion event
+  if (eventType === 'organization.deleted') {
+    try {
+      // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/DeleteOrganization
+      // Show what evnt?.data sends from above resource
+      const { id } = evnt?.data
+      console.log('deleted', evnt?.data)
+
+      // @ts-ignore
+      await deleteCommunity(id)
+
+      return NextResponse.json(
+        { message: 'Organization deleted' },
+        { status: 201 }
+      )
+    } catch (err) {
+      console.log(err)
+
+      return NextResponse.json(
+        { message: 'Internal Server Error' },
+        { status: 500 }
+      )
+    }
+  }
 }
