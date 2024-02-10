@@ -10,7 +10,8 @@ import { IncomingHttpHeaders } from 'http'
 
 import { NextResponse } from 'next/server'
 import {
-  createCommunity
+  addMemberToCommunity,
+  createCommunity,
 } from '@/lib/actions/community.actions'
 
 // Resource: https://clerk.com/docs/integration/webhooks#supported-events
@@ -107,5 +108,29 @@ export const POST = async (request: Request) => {
   }
 
   // Listen organization membership (member invite & accepted) creation
+  if (eventType === 'organizationMembership.created') {
+    try {
+      // Resource: https://clerk.com/docs/reference/backend-api/tag/Organization-Memberships#operation/CreateOrganizationMembership
+      // Show what evnt?.data sends from above resource
+      const { organization, public_user_data } = evnt?.data
+      console.log('created', evnt?.data)
+
+      // @ts-ignore
+      await addMemberToCommunity(organization.id, public_user_data.user_id)
+
+      return NextResponse.json(
+        { message: 'Invitation accepted' },
+        { status: 201 }
+      )
+    } catch (err) {
+      console.log(err)
+
+      return NextResponse.json(
+        { message: 'Internal Server Error' },
+        { status: 500 }
+      )
+    }
+  }
+
   
 }
