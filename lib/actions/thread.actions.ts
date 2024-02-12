@@ -37,6 +37,12 @@ export async function createThread({
       $push: { threads: createdThread._id },
     })
 
+    if (communityIdObject) {
+      await Community.findByIdAndUpdate(communityIdObject, {
+        $push: { threads: createdThread._id },
+      })
+    }
+
     revalidatePath(path)
   } catch (error: any) {
     throw new Error(`Failed to create thread: ${error.message}`)
