@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import Thread from '../models/thread.model'
+import Community from '../models/community.model'
 import User from '../models/user.model'
 import { connectToDB } from '../mongoose'
 
@@ -21,10 +22,15 @@ export async function createThread({
   connectToDB()
 
   try {
+    const communityIdObject = await Community.findOne(
+      { id: communityId },
+      { _id: 1 }
+    )
+
     const createdThread = await Thread.create({
       text,
       author,
-      community: communityId,
+      community: communityIdObject,
     })
 
     await User.findByIdAndUpdate(author, {
@@ -50,6 +56,7 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
       .skip(skipAmount)
       .limit(pageSize)
       .populate({ path: 'author', model: User })
+      .populate({ path: 'community', model: Community })
       .populate({
         path: 'children',
         populate: {
@@ -147,21 +154,20 @@ export async function fetchUserPosts(userId: string) {
   try {
     connectToDB()
 
-    const threads = await User.findOne({ id: userId })
-      .populate({
-        path: 'threads',
+    const threads = await User.findOne({ id: userId }).populate({
+      path: 'threads',
+      model: Thread,
+      populate: {
+        path: 'children',
         model: Thread,
         populate: {
-          path: 'children',
-          model: Thread,
-          populate: {
-            path: 'author',
-            model: User,
-            select: 'name image id'
-          }
-        }
-      })
-    
+          path: 'author',
+          model: User,
+          select: 'name image id',
+        },
+      },
+    })
+
     return threads
   } catch (error: any) {
     throw new Error(`Failed to fetch user threads: ${error.message}`)
