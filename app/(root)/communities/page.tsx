@@ -1,10 +1,15 @@
 import CommunityCard from '@/components/cards/CommunityCard'
+import Searchbar from '@/components/shared/Searchbar'
 import { fetchCommunities } from '@/lib/actions/community.actions'
 import { fetchUser } from '@/lib/actions/user.actions'
 import { currentUser } from '@clerk/nextjs'
 import { redirect } from 'next/navigation'
 
-async function Page() {
+async function Page({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined }
+}) {
   const user = await currentUser()
 
   if (!user) return null
@@ -13,7 +18,7 @@ async function Page() {
   if (!userInfo?.onboarded) redirect('/onboarding')
 
   const result = await fetchCommunities({
-    searchString: '',
+    searchString: searchParams.q,
     pageNumber: 1,
     pageSize: 25,
   })
@@ -22,7 +27,9 @@ async function Page() {
     <section>
       <h1 className='head-text mb-10'>Communities</h1>
 
-      <div className='mt-14 flex flex-col gap-9'>
+      <Searchbar routeType='communities' />
+
+      <div className='mt-9 flex flex-wrap gap-4'>
         {result.communities.length === 0 ? (
           <p className='no-result'>No communities</p>
         ) : (
